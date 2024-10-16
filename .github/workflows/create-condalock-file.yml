@@ -4,9 +4,10 @@ on:
   # Trigger on push on main or other branch for testing
   # NOTE that push: main will create the file very often
   # and hence lots of automated PRs
-  # push:
-  #   branches:
-  #     - main
+  push:
+    branches:
+  #      - main
+    - test_BenMares
   schedule:
     - cron: '0 4 */10 * *'
 
@@ -29,7 +30,6 @@ jobs:
           activate-environment: esmvaltool-fromlock
           python-version: "3.12"
           miniforge-version: "latest"
-          miniforge-variant: Mambaforge
           use-mamba: true
       - name: Show conda config
         run: |
@@ -48,10 +48,21 @@ jobs:
           python --version
       - name: Install conda-lock
         run: mamba install -y -c conda-forge conda-lock
+      - name: Upgrade conda-lock
+        run: pip install --force 'git+https://github.com/maresb/conda-lock@fix-pkgs-dirs-keyerror'
       - name: Check version of conda-lock
         run: conda-lock --version
+      - run: conda env export
+      - run: mamba info --json
+      - run: conda info --json
+      - run: conda install -c conda-forge "mamba>2"
+      - run: mamba info --json
+      - run: mamba install -y -c conda-forge micromamba
+      - run: micromamba info --json
+      - run: /home/runner/miniconda3/envs/esmvaltool-fromlock/bin/mamba --version
+      - run: md5sum /home/runner/miniconda3/envs/esmvaltool-fromlock/bin/mamba
       - name: Create conda lock file for linux-64
-        run: conda-lock lock --platform linux-64 -f environment.yml --mamba --kind explicit
+        run: conda-lock lock --platform linux-64 -f environment.yml --mamba --kind explicit --log-level=DEBUG
       - name: Show conda version again
         run: conda --version
       - name: Show Python exec and version again
